@@ -1,0 +1,43 @@
+name: APK yasash
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodni olish
+        uses: actions/checkout@v4
+
+      - name: Zipni ochish
+        run: unzip -o KinoPlayerApp.zip -d .
+
+      - name: Java o'rnatish
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Gradle uchun ruxsat berish
+        run: chmod +x KinoPlayerApp/gradlew || true
+
+      - name: Gradle wrapper yaratish (agar mavjud bo'lmasa)
+        working-directory: KinoPlayerApp
+        run: |
+          if [ ! -f gradlew ]; then
+            gradle wrapper --gradle-version 8.4
+            chmod +x gradlew
+          fi
+
+      - name: APK yasash
+        working-directory: KinoPlayerApp
+        run: ./gradlew assembleDebug
+
+      - name: APK faylni yuklash
+        uses: actions/upload-artifact@v4
+        with:
+          name: KinoPlayer-APK
+          path: KinoPlayerApp/app/build/outputs/apk/debug/app-debug.apk
